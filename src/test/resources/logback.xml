@@ -1,0 +1,14 @@
+<configuration>
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <file>${user.home}/log-LTU/logback.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.example" level="debug" />
+
+    <root level="INFO">
+        <appender-ref ref="file" />
+    </root>
+</configuration>
