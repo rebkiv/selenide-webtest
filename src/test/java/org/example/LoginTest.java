@@ -1,22 +1,30 @@
 package org.example;
 
+import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.SelenideElement;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
+import org.openqa.selenium.By;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
-
 import static com.codeborne.selenide.Selenide.*;
+import static com.codeborne.selenide.WebDriverRunner.url;
 
 
 public class LoginTest {
 
     // Logger instance
     private static final Logger logger = LoggerFactory.getLogger(LoginTest.class);
+
+    @BeforeAll
+    public static void setUp() {
+        Configuration.browserCapabilities = new ChromeOptions().addArguments("--remote-allow-origins=*");
+    }
 
     @Test
     public void LoginLTU() {
@@ -39,11 +47,24 @@ public class LoginTest {
             logger.error("An error occurred when getting the LTU credentials: ", e);
         }
 
-
         // Test case
-        open("https://www.ltu.se/");
-        logger.info("Page opened");
+        logger.info("*** START LOGIN TEST ***");
+        try {
+            open("https://www.ltu.se/");
+            logger.info("LTU page opened");
+        } catch (Exception e) {
+            logger.error("LTU page not opened", e);
+        }
 
+        // Handle cookies
+        try {
+            SelenideElement allowCookies = $(By.cssSelector("button[class='CybotCookiebotDialogBodyButton']"));
+            allowCookies.click();
+        } catch (Exception e) {
+            logger.error("Error occurred when trying to accept cookies: ", e);
+        }
+
+        // Get to login page
         try {
             SelenideElement studentButton = $x("(//a[text()='Student'])[1]");
             studentButton.click();
@@ -84,11 +105,21 @@ public class LoginTest {
             logger.error("Login button not found", e);
         }
 
+        // Validate login successful
+        try {
+            String currentURL = url();
+            String expectedURL = "https://portal.ltu.se/group/student/start"; // Change to correct expected URL if needed
+            if (currentURL.equals(expectedURL)) {
+                logger.info("Login successful");
+            } else {
+                throw new Exception("Login failed, expected URL: " + expectedURL + ", actual URL: " + currentURL);
+            }
+        } catch (Exception e) {
+            logger.error("Error when logging in, ", e);
+        }
+
         sleep(5000);
-
     }
-
-
 }
 
 
